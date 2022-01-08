@@ -10,8 +10,9 @@ function Card(props) {
     const card_id = props.deckNumber + "-" + card_val;
 
     return (
-        <button className="card">
-            <img src={require(`${img_path}`)} alt={card_val} id={card_id}/>
+        <button className="card" id={card_id}>
+            {/* {card_val} */}
+            {/* <img src={require(`${img_path}`)} alt={card_val} id={card_id}/> */}
         </button>
     );
 }
@@ -60,7 +61,6 @@ class Game extends React.Component {
         const current = decks[decks.length - 1].cards;
 
         const shuffled = current.map(x => x !== 51 ? (x * 2) % 51 : 51)
-        // console.log(shuffled);
         this.setState({
             decks: decks.concat([{
                 cards: shuffled,
@@ -73,7 +73,6 @@ class Game extends React.Component {
         const decks = this.state.decks;
 
         const shuffles = decks.map((deck, deckNumber) => {
-            console.log(deck.cards)
             return (
                 <li key={deckNumber} className="decks">
                     <Deck cards={deck.cards} deckNumber={deckNumber}/>

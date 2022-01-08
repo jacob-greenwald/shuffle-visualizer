@@ -17,7 +17,7 @@
     "react-scripts": "5.0.0",
     "react-xarrows": "^2.0.2",
     "web-vitals": "^2.1.2",
-    "homepage": "https://jacob-greenwald.github.io/shuffle-visualizer",
+    "homepage": "https://jacob-greenwald.github.io/shuffle-visualizer"
   },
   "scripts": {
     "predeploy": "npm run build",

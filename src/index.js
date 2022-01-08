@@ -75,6 +75,7 @@ class Game extends React.Component {
 
 
         console.log(shuffled);
+        console.log("Rising Sequences:", risingSequences(shuffled));
         this.setState({
             decks: decks.concat([{
                 cards: shuffled,
@@ -191,7 +192,7 @@ function antiFaro(deck) {
             secondHalf.push(deck[i]);
         }
     }
-    return firstHalf.concat(secondHalf);
+    return secondHalf.concat(firstHalf);
 }
 
 function outFaro(deck) {
@@ -207,7 +208,6 @@ function inFaro(deck) {
 function riffle(deck) {
     const numberCards = deck.length;
     const pos = Binomial.random({"n":numberCards, "p":0.5});
-    console.log(pos);
     const left = deck.slice(0,pos);
     const right = deck.slice(pos, numberCards);
     const shuffled = [];
@@ -221,4 +221,119 @@ function riffle(deck) {
         }
     }
     return shuffled;
+}
+
+function risingSequences(deck) {
+    const numberCards = deck.length;
+    const seqs = [];
+
+    const marked = new Set();
+    for (let i = 0; i < numberCards; i++) {
+        if (!marked.has(i)) {
+            marked.add(i);
+            let start = deck.indexOf(i);
+            let curr = deck[start];
+            const seq = [curr];
+            for (let j = start; j < numberCards; j++) {
+                if (deck[j] === curr + 1) {
+                    marked.add(deck[j]);
+                    curr = deck[j];
+                    seq.push(curr);
+                }
+            }
+            seqs.push(seq);
+        }
+    }
+    return seqs;
+}
+
+// function entropy (deck) {
+//     const numberCards = deck.length;
+//     const hist = [];
+
+//     for (let i = 0; i < numberCards - 1; i++) {
+//         hist.push((deck[i+1] - deck[i] + 52) % 52);
+//     }
+//     hist.push((deck[0] - deck[numberCards - 1] + 52) % 52);
+//     // const probs = Count
+//     // hist = []
+//     // values = self.values()
+//     // for i in range(len(values) - 1):
+//     //     hist.append((values[i+1] - values[i] + 52) % 52)
+//     // hist.append((values[0] - values[-1] + 52) % 52)
+//     // probs = Counter(hist)
+//     // E = 0
+//     // for i in range(1,53):
+//     //     if i in probs:
+//     //         p = probs.get(i) / 52
+//     //         E += -1 * p * np.log2(p)
+//     // return E
+// }
+
+function toCull(deck) {
+    const result = [];
+    const seqs = risingSequences(deck);
+    for (let i = 0; i < seqs.length; i++) {
+        if (i % 2 !== 0) {
+            result.concat(seqs[i]);
+        }
+    }
+    return result;
+}
+
+function cull(deck) {
+    const bits = [];
+    let cutCard = null;
+    const toCull = toCull(deck);
+    for (let i = 0; i < deck.length; i++) {
+        if (toCull.includes(deck[i])) {
+            bits.push(0);
+        } else {
+            if (cutCard !== null) {
+                cutCard = deck[i];
+            }
+            bits.push(1);
+        }
+    }
+    const conBits = consecutiveBits(bits);
+    if (conBits.length % 2) {
+        for (let i = 0; i < conBits.length - 1; i += 2) {
+            console.log(conBits[i], conBits[i+1])
+        }
+        console.log(conBits[conBits.length - 1]);
+
+    } else {
+        for (let i = 0; i < conBits.length; i += 2) {
+            console.log(conBits[i], conBits[i+1])
+        }
+    }
+
+    // https://stackoverflow.com/questions/46622486/what-is-the-javascript-equivalent-of-numpy-argsort
+    const dsu = (arr1, arr2) => arr1
+        .map((item, index) => [arr2[index], item]) // add the args to sort by
+        .sort(([arg1], [arg2]) => arg2 - arg1) // sort by the args
+        .map(([, item]) => item); // extract the sorted items
+
+
+    const culled = dsu(deck, bits);
+    return culled;
+
+//     self.cards = [self.cards[k] for k in np.argsort(bits, kind='stable')]
+}
+
+function consecutiveBits(bits) {
+    const lengths = [];
+    let prev = bits[0];
+    let currLength = 0;
+    for (let bit in bits) {
+        if (bit === prev) {
+            currLength += 1;
+        } else {
+            lengths.push(currLength);
+            currLength = 1;
+            prev = bit;
+        }
+    }
+    lengths.push(currLength);
+    return lengths;
 }

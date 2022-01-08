@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Xarrow from 'react-xarrows';
+import {Binomial} from 'sampson'
 
 
 function Card(props) {
@@ -66,9 +67,12 @@ class Game extends React.Component {
             shuffled = outFaro(deck);
         } else if (method === 'inFaro') {
             shuffled = inFaro(deck);
+        } else if (method === 'riffle') {
+            shuffled = riffle(deck);
         } else if (method === 'antiFaro') {
             shuffled = antiFaro(deck);
         }
+
 
         console.log(shuffled);
         this.setState({
@@ -122,7 +126,9 @@ class Game extends React.Component {
         return (
             <div className="game">
                 <span className="controls">
+                    <button className="shuffleButton" onClick={() => this.shuffle("riffle")}>Riffle</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
+                    <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
                 </span>
                 <div>
@@ -176,8 +182,16 @@ function cardColor(card) {
 }
 
 function antiFaro(deck) {
-    const shuffled = deck.map(x => x !== 51 ? (x * 2) % 51 : 51);
-    return shuffled;
+    const firstHalf = [];
+    const secondHalf = [];
+    for (let i = 0; i < deck.length; i++) {
+        if (i % 2) {
+            firstHalf.push(deck[i]);
+        } else {
+            secondHalf.push(deck[i]);
+        }
+    }
+    return firstHalf.concat(secondHalf);
 }
 
 function outFaro(deck) {
@@ -186,5 +200,25 @@ function outFaro(deck) {
 }
 
 function inFaro(deck) {
-    return null;
+    const shuffled = deck.slice(0, (deck.length / 2)).flatMap((card, i) => [deck[i + (deck.length / 2)], card]);
+    return shuffled;
+}
+
+function riffle(deck) {
+    const numberCards = deck.length;
+    const pos = Binomial.random({"n":numberCards, "p":0.5});
+    console.log(pos);
+    const left = deck.slice(0,pos);
+    const right = deck.slice(pos, numberCards);
+    const shuffled = [];
+    for (let i = 0; i < numberCards; i++) {
+        let p = Math.random();
+        let thresh = left.length / (left.length + right.length);
+        if (p < thresh) {
+            shuffled.push(left.shift());
+        } else {
+            shuffled.push(right.shift());
+        }
+    }
+    return shuffled;
 }

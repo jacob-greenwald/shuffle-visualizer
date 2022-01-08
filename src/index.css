@@ -34,7 +34,8 @@ body {
     margin-top: 1px;
     padding: 0;
     text-align: center;
-    width: 23px;
+    width: 1.7vw;
+    /* width: auto; */
   }
   
   .card:focus {
@@ -42,9 +43,9 @@ body {
   }
   
   .deck {
-    margin-bottom: 80px;
+    margin-bottom: 300px;
     margin-left: 0px;
-    /* margin: auto; */
+
     width: 100%;
     /* overflow: hidden; */
 
@@ -52,20 +53,25 @@ body {
   }
 
   .deck-container {
-    margin-left: 0%;
-    margin-top: 0%;
+    display: block;
+    position: center;
+    margin: auto;
+    margin-top: 10px;
     width: 100%;
-    padding: 7px;
-    overflow: hidden;
-    /* list-style-type: none; */
+    /* padding: 17px; */
+    overflow: auto;
   }
 
   .controls {
-    margin-left: auto;
+    position: sticky;
+    top: 5px;
+    width: 100%;
+    margin: auto;
     padding: 0%;
   }
 
   .shuffleButton {
+    position: sticky;
     margin:auto;
   }
 
@@ -74,7 +80,7 @@ body {
   }
   
   .game {
-    display: flex;
+    display: grid;
     flex-direction: row;
   }
   

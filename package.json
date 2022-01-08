@@ -16,8 +16,7 @@
     "react-draggable": "^4.4.4",
     "react-scripts": "5.0.0",
     "react-xarrows": "^2.0.2",
-    "web-vitals": "^2.1.2",
-    "homepage": "https://jacob-greenwald.github.io/shuffle-visualizer"
+    "web-vitals": "^2.1.2"
   },
   "scripts": {
     "start": "react-scripts start",

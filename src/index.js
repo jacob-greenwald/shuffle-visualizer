@@ -10,24 +10,46 @@ function Card(props) {
     const card_val = indexToCard(props.value);
     const card_id = props.deckNumber + "-" + card_val;
 
+    const className = props.view ? "card-view" : "card";
+
     return (
-        <button className="card" id={card_id}>
-            {/* {card_val} */}
-            <img src={require(`${img_path}`)} alt={card_val}/>
-        </button>
+        <div className="inner">
+            <button className={className} id={card_id}>
+                {/* {card_val} */}
+                <img src={require(`${img_path}`)} alt={card_val}/>
+            </button>
+        </div>
+        
     );
 }
+
+
   
 class Deck extends React.Component {
     renderCard(i) {
         const val = this.props.cards[i];
         const deckNumber = this.props.deckNumber;
         const key = String(val) + String(deckNumber);
+
+        // // Create movement animation
+        // if (deckNumber > 0) {
+        //     const card1Id = String(deckNumber - 1) + '-' + card_val;
+        //     const card2Id = String(deckNumber) + '-' + card_val;
+        //     const card1Elem = document.getElementById(card1Id);
+        //     const card2Elem = document.getElementById(card2Id);
+        //     // const card1Pos = document.getElementById(card1Id).getBoundingClientRect();
+        //     // const card2Pos = document.getElementById(card2Id).getBoundingClientRect();
+        //     console.log(card1Id, card2Id, card1Elem, card2Elem);
+        // }
+
+
+
         return (
             <Card 
                 key={key}
                 value={this.props.cards[i]}
                 deckNumber={this.props.deckNumber}
+                view={this.props.view}
             />
         );
     }
@@ -45,8 +67,30 @@ class Deck extends React.Component {
     }
 }
   
-class Game extends React.Component {
+class Slider extends React.Component {
+    handleChange(event) {
+        const val = event.target.value;
 
+        const cards = document.getElementsByClassName("card-view");
+
+        for (let i = 0; i < cards.length; i++) {
+            let card = cards[i];
+            card.style.width = val + "vw";
+        }
+        window.scrollTo(0,document.body.scrollHeight - 700);
+    }
+
+    // componentDidMount() {
+    //     changeViewSize(document.getElementById("typeinp"));
+    // }
+    
+    render() {
+        return <input id="typeinp" type="range" min="3" max="10" defaultValue="4.5" step=".1" onChange={this.handleChange}/>
+    }
+
+}
+
+class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -54,6 +98,7 @@ class Game extends React.Component {
                 cards: [...Array(52).keys()],
             }],
             deckNumber: 0,
+            view: 0,
         };
     }
 
@@ -77,6 +122,7 @@ class Game extends React.Component {
             this.setState({
                 decks: decks.concat(orders),
                 deckNumber: this.state.deckNumber + orders.length,
+                view: this.state.deckNumber + orders.length,
             });
             
             return;
@@ -88,11 +134,14 @@ class Game extends React.Component {
                 cards: shuffled,
             }]),
             deckNumber: this.state.deckNumber + 1,
+            view: this.state.deckNumber + 1,
         });
     }
     
     render() {
         const decks = this.state.decks;
+        const view = this.state.view;
+        const viewDeck = decks[view].cards;
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (
@@ -101,9 +150,6 @@ class Game extends React.Component {
                 </li>
               );
         })
-
-
-        window.scrollTo(0,document.body.scrollHeight);
 
         let lines;
         if (decks.length > 1) {
@@ -126,7 +172,8 @@ class Game extends React.Component {
                                 endAnchor='top' 
                                 path='straight' 
                                 color={arrowColor}
-                                headShape={'circle'}
+                                // animateDrawing
+
                                 showHead={false}
                                 strokeWidth={1.5}
                             />)
@@ -142,11 +189,16 @@ class Game extends React.Component {
                     <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("shuffleTo")}>Riffle to NDO</button>
+
+                    <Slider></Slider>
                 </span>
-                <div>
-                    <ol className="deck-container" id="deck-container">{shuffles}</ol>
+
+                <div className="deck-container" id="deck-container">
+                    <ol >{shuffles}</ol>
                 </div>
-                {/* <div className="decks">{shuffles}</div> */}
+
+                
+                <div className="deck-view"><Deck cards={viewDeck} deckNumber={view} view={true}/></div>
                 
 
                 {lines}
@@ -349,3 +401,13 @@ function values(mapping, deck) {
     });
     return vals;
 }
+
+// function changeViewSize(val) {
+//     const cards = document.getElementsByClassName("card-view");
+
+//     for (let i = 0; i < cards.length; i++) {
+//         let card = cards[i];
+//         console.log(card);
+//         card.style.width = val + "vw";
+//     }
+// }

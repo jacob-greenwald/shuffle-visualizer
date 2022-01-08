@@ -12,7 +12,7 @@ function Card(props) {
     return (
         <button className="card" id={card_id}>
             {/* {card_val} */}
-            {/* <img src={require(`${img_path}`)} alt={card_val} id={card_id}/> */}
+            <img src={require(`${img_path}`)} alt={card_val}/>
         </button>
     );
 }
@@ -56,11 +56,21 @@ class Game extends React.Component {
         };
     }
 
-    outFaro() {
-        const decks = this.state.decks;
-        const current = decks[decks.length - 1].cards;
 
-        const shuffled = current.map(x => x !== 51 ? (x * 2) % 51 : 51)
+    shuffle(method) {
+        const decks = this.state.decks;
+        const deck = decks[decks.length - 1].cards;
+
+        let shuffled;
+        if (method === 'outFaro') {
+            shuffled = outFaro(deck);
+        } else if (method === 'inFaro') {
+            shuffled = inFaro(deck);
+        } else if (method === 'antiFaro') {
+            shuffled = antiFaro(deck);
+        }
+
+        console.log(shuffled);
         this.setState({
             decks: decks.concat([{
                 cards: shuffled,
@@ -74,7 +84,7 @@ class Game extends React.Component {
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (
-                <li key={deckNumber} className="decks">
+                <li key={deckNumber} className="deck">
                     <Deck cards={deck.cards} deckNumber={deckNumber}/>
                 </li>
               );
@@ -111,12 +121,15 @@ class Game extends React.Component {
 
         return (
             <div className="game">
-                <div className="controls">
-                    <button onClick={() => this.outFaro()}>Out Faro</button>
+                <span className="controls">
+                    <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
+                    <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
+                </span>
+                <div>
+                    <ol className="deck-container">{shuffles}</ol>
                 </div>
-
-
-                <ol className="decks">{shuffles}</ol>
+                {/* <div className="decks">{shuffles}</div> */}
+                
 
                 {lines}
 
@@ -160,4 +173,18 @@ function cardColor(card) {
         return 'red';
     }
     return 'black';
+}
+
+function antiFaro(deck) {
+    const shuffled = deck.map(x => x !== 51 ? (x * 2) % 51 : 51);
+    return shuffled;
+}
+
+function outFaro(deck) {
+    const shuffled = deck.slice(0, (deck.length / 2)).flatMap((card, i) => [card, deck[i + (deck.length / 2)]]);
+    return shuffled;
+}
+
+function inFaro(deck) {
+    return null;
 }

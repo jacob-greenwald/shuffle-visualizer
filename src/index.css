@@ -41,13 +41,33 @@ body {
     outline: none;
   }
   
-  .decks {
+  .deck {
     margin-bottom: 80px;
+    margin-left: 0px;
+    /* margin: auto; */
+    width: 100%;
+    /* overflow: hidden; */
+
+    /* list-style-type:none; */
   }
 
-  /* .controls {
+  .deck-container {
+    margin-left: 0%;
+    margin-top: 0%;
+    width: 100%;
+    padding: 7px;
+    overflow: hidden;
+    /* list-style-type: none; */
+  }
 
-  } */
+  .controls {
+    margin-left: auto;
+    padding: 0%;
+  }
+
+  .shuffleButton {
+    margin:auto;
+  }
 
   .kbd-navigation .square:focus {
     background: #ddd;

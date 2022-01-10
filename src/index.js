@@ -1,9 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import Xarrow from 'react-xarrows';
+import Xarrow, {useXarrow, Xwrapper} from 'react-xarrows';
 import {Binomial} from 'sampson'
 
+const ScrolledDiv = ({ children}) => {
+    const updateXarrow = useXarrow();
+    return (
+      <div
+        className="deck-container"
+        onScroll={updateXarrow}>
+        {children}
+      </div>
+    );
+  };
 
 function Card(props) {
     const img_path = indexToImage(props.value);
@@ -30,19 +40,6 @@ class Deck extends React.Component {
         const val = this.props.cards[i];
         const deckNumber = this.props.deckNumber;
         const key = String(val) + String(deckNumber);
-
-        // // Create movement animation
-        // if (deckNumber > 0) {
-        //     const card1Id = String(deckNumber - 1) + '-' + card_val;
-        //     const card2Id = String(deckNumber) + '-' + card_val;
-        //     const card1Elem = document.getElementById(card1Id);
-        //     const card2Elem = document.getElementById(card2Id);
-        //     // const card1Pos = document.getElementById(card1Id).getBoundingClientRect();
-        //     // const card2Pos = document.getElementById(card2Id).getBoundingClientRect();
-        //     console.log(card1Id, card2Id, card1Elem, card2Elem);
-        // }
-
-
 
         return (
             <Card 
@@ -79,10 +76,6 @@ class Slider extends React.Component {
         }
         window.scrollTo(0,document.body.scrollHeight - 700);
     }
-
-    // componentDidMount() {
-    //     changeViewSize(document.getElementById("typeinp"));
-    // }
     
     render() {
         return <input id="typeinp" type="range" min="3" max="10" defaultValue="4.5" step=".1" onChange={this.handleChange}/>
@@ -90,7 +83,43 @@ class Slider extends React.Component {
 
 }
 
-class Game extends React.Component {
+
+function Lines(props) {
+    const decks = props.decks;
+
+    let lines;
+
+    if (decks.length > 1) {
+        lines = decks.map((deck, deckNumber) => {
+            const cards = deck.cards;
+            if (deckNumber === decks.length - 1) {
+                return null;
+            }
+            return (cards.map((card) => {
+                const card_val = indexToCard(card);
+                const card1Id = String(deckNumber) + '-' + card_val;
+                const card2Id = String(deckNumber + 1) + '-' + card_val;
+                const arrowKey = "arrow" + card1Id;
+                const arrowColor = cardColor(card_val);
+                return (<Xarrow 
+                            key={arrowKey} 
+                            start={card1Id} 
+                            end={card2Id} 
+                            startAnchor='bottom' 
+                            endAnchor='top' 
+                            path='straight' 
+                            color={arrowColor}
+
+                            showHead={false}
+                            strokeWidth={1.5}
+                        />)
+            }))
+        })
+    }
+    return <div className="lines">{lines}</div>
+}
+
+class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -137,6 +166,12 @@ class Game extends React.Component {
             view: this.state.deckNumber + 1,
         });
     }
+
+    handleDeckClick(deckNumber) {
+        this.setState({
+            view: deckNumber,
+        });
+    }
     
     render() {
         const decks = this.state.decks;
@@ -145,41 +180,11 @@ class Game extends React.Component {
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (
-                <li key={deckNumber} className="deck">
+                <li key={deckNumber} className="deck" onClick={() => this.handleDeckClick(`${deckNumber}`)}>
                     <Deck cards={deck.cards} deckNumber={deckNumber}/>
                 </li>
               );
         })
-
-        let lines;
-        if (decks.length > 1) {
-            lines = decks.map((deck, deckNumber) => {
-                const cards = deck.cards;
-                if (deckNumber === decks.length - 1) {
-                    return null;
-                }
-                return (cards.map((card) => {
-                    const card_val = indexToCard(card);
-                    const card1Id = String(deckNumber) + '-' + card_val;
-                    const card2Id = String(deckNumber + 1) + '-' + card_val;
-                    const arrowKey = "arrow" + card1Id;
-                    const arrowColor = cardColor(card_val);
-                    return (<Xarrow 
-                                key={arrowKey} 
-                                start={card1Id} 
-                                end={card2Id} 
-                                startAnchor='bottom' 
-                                endAnchor='top' 
-                                path='straight' 
-                                color={arrowColor}
-                                // animateDrawing
-
-                                showHead={false}
-                                strokeWidth={1.5}
-                            />)
-                }))
-            })
-        }
 
         return (
             <div className="game">
@@ -192,16 +197,20 @@ class Game extends React.Component {
 
                     <Slider></Slider>
                 </span>
+                <Xwrapper>
+                    <ScrolledDiv className="deck-container">
+                        <ol >{shuffles}</ol>
 
-                <div className="deck-container" id="deck-container">
-                    <ol >{shuffles}</ol>
-                </div>
-
+                    </ScrolledDiv >
+                    <Lines decks = {this.state.decks}></Lines>
+                </Xwrapper>
                 
+                {/* <div className="deck-container" id="deck-container">
+                    <ol >{shuffles}</ol>
+                </div> */}
+
                 <div className="deck-view"><Deck cards={viewDeck} deckNumber={view} view={true}/></div>
                 
-
-                {lines}
 
 
             </div>
@@ -212,7 +221,7 @@ class Game extends React.Component {
   // ========================================
   
   ReactDOM.render(
-    <Game />,
+    <App />,
     document.getElementById('root')
   );
   

@@ -1,10 +1,16 @@
 body {
     font: 14px "Century Gothic", Futura, sans-serif;
     margin: 20px;
+    background-color: white;
+  }
+
+  div {
+    display: block;
   }
   
   ol, ul {
     padding-left: 30px;
+    display: block;
   }
   
   .deck-row:after {
@@ -21,11 +27,11 @@ body {
     width: 100%;
     height: auto;
     display: inline-block;
-
+    background-color: inherit;
   }
 
   .card {
-    background: #fff;
+    background: inherit;
     border: 0px solid #999;
     float: left;
     font-size: 14px;
@@ -50,6 +56,7 @@ body {
     margin-left: 0px;
 
     width: 100%;
+    position: relative;
     /* overflow: hidden; */
 
     /* list-style-type:none; */
@@ -62,7 +69,7 @@ body {
     margin-top: 10px;
     margin-bottom: -250px;
     width: 100%;
-    height: 70%;
+    /* height: 70%; */
     /* padding: 17px; */
     overflow: scroll;
   }
@@ -96,7 +103,7 @@ body {
 
 
   .card-view {
-    background: #fff;
+    background: inherit;
     border: 0px solid #999;
     /* float: left; */
     font-size: 14px;
@@ -113,7 +120,8 @@ body {
   }
 
   .deck-view {
-    margin: auto;
+    margin-top: 10rem;
+    margin-bottom: 10rem;
     width: 100%;
     height: auto;
     overflow-x: scroll;
@@ -124,9 +132,14 @@ body {
     z-index: 1;
     position: sticky;
     bottom: 5px;
+    background-color: inherit;
   }
 
   .inner {
     display: inline-block;
     overflow-x: scroll;
+  }
+
+  .lines {
+    position: absolute;
   }

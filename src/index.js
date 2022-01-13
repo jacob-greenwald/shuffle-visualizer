@@ -24,7 +24,7 @@ function Card(props) {
 
     return (
         <div className="inner">
-            <button className={className} id={card_id}>
+            <button className={className} id={card_id} onClick={() => props.handleCardClick({card_val})}>
                 {/* {card_val} */}
                 <img src={require(`${img_path}`)} alt={card_val}/>
             </button>
@@ -40,6 +40,7 @@ class Deck extends React.Component {
         const val = this.props.cards[i];
         const deckNumber = this.props.deckNumber;
         const key = String(val) + String(deckNumber);
+        const handleCardClick = this.props.handleCardClick;
 
         return (
             <Card 
@@ -47,6 +48,7 @@ class Deck extends React.Component {
                 value={this.props.cards[i]}
                 deckNumber={this.props.deckNumber}
                 view={this.props.view}
+                handleCardClick={handleCardClick}
             />
         );
     }
@@ -86,6 +88,9 @@ class Slider extends React.Component {
 
 function Lines(props) {
     const decks = props.decks;
+    const selectedCards = props.selectedCards;
+    const emptySelectedCards = selectedCards.size;
+
 
     let lines;
 
@@ -100,14 +105,25 @@ function Lines(props) {
                 const card1Id = String(deckNumber) + '-' + card_val;
                 const card2Id = String(deckNumber + 1) + '-' + card_val;
                 const arrowKey = "arrow" + card1Id;
-                const arrowColor = cardColor(card_val);
+                // const arrowColor = cardColor(card_val);
+                let arrowColor;
+                if (emptySelectedCards) {
+                    arrowColor = selectedCards.has(card_val) ? "red" : "silver";
+                } else {
+                    arrowColor = cardColor(card_val);
+                }
+                // if (!selectedCards.has(card_val)) {
+                //     return null;
+                // }
+
                 return (<Xarrow 
                             key={arrowKey} 
                             start={card1Id} 
                             end={card2Id} 
                             startAnchor='bottom' 
                             endAnchor='top' 
-                            path='straight' 
+                            curveness={0.15} 
+                            path='smooth' 
                             color={arrowColor}
 
                             showHead={false}
@@ -122,12 +138,16 @@ function Lines(props) {
 class App extends React.Component {
     constructor(props) {
         super(props);
+
+        // https://stackoverflow.com/questions/39176248/react-js-cant-read-property-of-undefined
+        this.handleCardClick = this.handleCardClick.bind(this);
         this.state = {
             decks: [{
                 cards: [...Array(52).keys()],
             }],
             deckNumber: 0,
             view: 0,
+            selectedCards: new Set(),
         };
     }
 
@@ -145,6 +165,8 @@ class App extends React.Component {
             shuffled = riffle(deck);
         } else if (method === 'antiFaro') {
             shuffled = antiFaro(deck);
+        } else if (method === "fisherYates") {
+            shuffled = fisherYates(deck);
         } else if (method === 'shuffleTo') {
             const orders = shuffleTo(deck, [...Array(52).keys()]);
 
@@ -172,6 +194,16 @@ class App extends React.Component {
             view: deckNumber,
         });
     }
+
+    handleCardClick(card) {
+        const selectedCards = this.state.selectedCards;
+        const card_val = card.card_val;
+        selectedCards.has(card_val) ? selectedCards.delete(card_val) : selectedCards.add(card_val);
+        this.setState({
+            selectedCards: selectedCards,
+        });
+        console.log(this.state.selectedCards);
+    }
     
     render() {
         const decks = this.state.decks;
@@ -181,7 +213,7 @@ class App extends React.Component {
         const shuffles = decks.map((deck, deckNumber) => {
             return (
                 <li key={deckNumber} className="deck" onClick={() => this.handleDeckClick(`${deckNumber}`)}>
-                    <Deck cards={deck.cards} deckNumber={deckNumber}/>
+                    <Deck cards={deck.cards} deckNumber={deckNumber} handleCardClick={this.handleCardClick}/>
                 </li>
               );
         })
@@ -190,6 +222,7 @@ class App extends React.Component {
             <div className="game">
                 <span className="controls">
                     <button className="shuffleButton" onClick={() => this.shuffle("riffle")}>Riffle</button>
+                    <button className="shuffleButton" onClick={() => this.shuffle("fisherYates")}>Fisher-Yates</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
@@ -202,7 +235,7 @@ class App extends React.Component {
                         <ol >{shuffles}</ol>
 
                     </ScrolledDiv >
-                    <Lines decks = {this.state.decks}></Lines>
+                    <Lines decks={this.state.decks} selectedCards={this.state.selectedCards}></Lines>
                 </Xwrapper>
                 
                 {/* <div className="deck-container" id="deck-container">
@@ -411,6 +444,21 @@ function values(mapping, deck) {
     return vals;
 }
 
+/**
+ * Shuffles array in place. ES6 version
+ * @param {Array} deck items An array containing the items.
+ */
+function fisherYates(deck) {
+    deck = deck.slice();
+    var j, x, i;
+    for (i = deck.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = deck[i];
+        deck[i] = deck[j];
+        deck[j] = x;
+    }
+    return deck;
+}
 // function changeViewSize(val) {
 //     const cards = document.getElementsByClassName("card-view");
 

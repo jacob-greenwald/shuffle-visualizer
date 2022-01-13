@@ -122,12 +122,12 @@ body {
   .deck-view {
     margin-top: 10rem;
     margin-bottom: 10rem;
-    width: 100%;
+    /* width: 50%; */
     height: auto;
     overflow-x: scroll;
     overflow-y: scroll;
     white-space: nowrap;
-    display: inline-block;
+    /* display: inline-block; */
 
     z-index: 1;
     position: sticky;

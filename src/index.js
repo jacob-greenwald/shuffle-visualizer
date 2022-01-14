@@ -110,13 +110,10 @@ function Lines(props) {
                 // const arrowColor = cardColor(card_val);
                 let arrowColor;
                 if (emptySelectedCards) {
-                    arrowColor = selectedCards.has(card_val) ? "red" : "silver";
+                    arrowColor = selectedCards.has(card_val) ? cardColor(card_val) : "silver";
                 } else {
                     arrowColor = cardColor(card_val);
                 }
-                // if (!selectedCards.has(card_val)) {
-                //     return null;
-                // }
 
                 return (<Xarrow 
                             key={arrowKey} 
@@ -145,6 +142,8 @@ class App extends React.Component {
         this.handleCardClick = this.handleCardClick.bind(this);
         this.indexToCard = this.indexToCard.bind(this);
         this.handleDeckSelection = this.handleDeckSelection.bind(this);
+        this.handleClearSelections = this.handleClearSelections.bind(this);
+
         this.state = {
             decks: [{
                 cards: [...Array(52).keys()],
@@ -218,7 +217,7 @@ class App extends React.Component {
         });
     }
 
-    handleDeckSelection(x) {
+    handleDeckSelection() {
         const deckIndex = document.getElementById("orderSelect").selectedIndex;
         const newMapping = Decks[deckIndex];
         this.setState({
@@ -229,6 +228,12 @@ class App extends React.Component {
             view: 0,
             selectedCards: new Set(),
             mapping: newMapping,
+        })
+    }
+
+    handleClearSelections() {
+        this.setState({
+            selectedCards: new Set(),
         })
     }
     
@@ -267,6 +272,7 @@ class App extends React.Component {
                         <option id="selection-CHSD">CHSD</option>
                         <option id="selection-Mnemonica">Mnemonica</option>
                     </select>
+                    <button className="shuffleButton" onClick={this.handleClearSelections}>Clear Selections</button>
 
                     {/* <Slider></Slider> */}
                 </span>

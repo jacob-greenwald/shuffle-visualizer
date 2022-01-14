@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Xarrow, {useXarrow, Xwrapper} from 'react-xarrows';
-import {Binomial} from 'sampson'
+import {Binomial} from 'sampson';
+import {Decks} from "./decks.js";
 
 const ScrolledDiv = ({ children}) => {
     const updateXarrow = useXarrow();
@@ -16,8 +17,8 @@ const ScrolledDiv = ({ children}) => {
   };
 
 function Card(props) {
-    const img_path = indexToImage(props.value);
-    const card_val = indexToCard(props.value);
+    const card_val = props.indexToCard(props.value);
+    const img_path = cardToImage(card_val);
     const card_id = props.deckNumber + "-" + card_val;
 
     const className = props.view ? "card-view" : "card";
@@ -48,6 +49,7 @@ class Deck extends React.Component {
                 value={this.props.cards[i]}
                 deckNumber={this.props.deckNumber}
                 view={this.props.view}
+                indexToCard={this.props.indexToCard}
                 handleCardClick={handleCardClick}
             />
         );
@@ -101,7 +103,7 @@ function Lines(props) {
                 return null;
             }
             return (cards.map((card) => {
-                const card_val = indexToCard(card);
+                const card_val = props.indexToCard(card);
                 const card1Id = String(deckNumber) + '-' + card_val;
                 const card2Id = String(deckNumber + 1) + '-' + card_val;
                 const arrowKey = "arrow" + card1Id;
@@ -141,6 +143,8 @@ class App extends React.Component {
 
         // https://stackoverflow.com/questions/39176248/react-js-cant-read-property-of-undefined
         this.handleCardClick = this.handleCardClick.bind(this);
+        this.indexToCard = this.indexToCard.bind(this);
+        this.handleDeckSelection = this.handleDeckSelection.bind(this);
         this.state = {
             decks: [{
                 cards: [...Array(52).keys()],
@@ -148,9 +152,15 @@ class App extends React.Component {
             deckNumber: 0,
             view: 0,
             selectedCards: new Set(),
+            mapping: Decks[0],
         };
     }
 
+    indexToCard(index) {
+        const mapping = this.state.mapping;
+        // const mapping = Decks[0];
+        return mapping[index];
+    }
 
     shuffle(method) {
         const decks = this.state.decks;
@@ -168,7 +178,11 @@ class App extends React.Component {
         } else if (method === "fisherYates") {
             shuffled = fisherYates(deck);
         } else if (method === 'shuffleTo') {
-            const orders = shuffleTo(deck, [...Array(52).keys()]);
+            const deckIndex = document.getElementById("riffleSelect").selectedIndex;
+            const currCardVals = this.state.mapping;
+            const newMapping = Decks[deckIndex].map((card) => {return currCardVals.indexOf(card)});
+
+            const orders = shuffleTo(deck, newMapping);
 
             this.setState({
                 decks: decks.concat(orders),
@@ -202,7 +216,20 @@ class App extends React.Component {
         this.setState({
             selectedCards: selectedCards,
         });
-        console.log(this.state.selectedCards);
+    }
+
+    handleDeckSelection(x) {
+        const deckIndex = document.getElementById("orderSelect").selectedIndex;
+        const newMapping = Decks[deckIndex];
+        this.setState({
+            decks: [{
+                cards: [...Array(52).keys()],
+            }],
+            deckNumber: 0,
+            view: 0,
+            selectedCards: new Set(),
+            mapping: newMapping,
+        })
     }
     
     render() {
@@ -213,7 +240,7 @@ class App extends React.Component {
         const shuffles = decks.map((deck, deckNumber) => {
             return (
                 <li key={deckNumber} className="deck" onClick={() => this.handleDeckClick(`${deckNumber}`)}>
-                    <Deck cards={deck.cards} deckNumber={deckNumber} handleCardClick={this.handleCardClick}/>
+                    <Deck cards={deck.cards} deckNumber={deckNumber} indexToCard={this.indexToCard} handleCardClick={this.handleCardClick}/>
                 </li>
               );
         })
@@ -226,23 +253,33 @@ class App extends React.Component {
                     <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
-                    <button className="shuffleButton" onClick={() => this.shuffle("shuffleTo")}>Riffle to NDO</button>
 
-                    <Slider></Slider>
+                    <button className="shuffleButton" onClick={() => this.handleDeckSelection("orderSelect")}>Change order to:</button>
+                    <select id="orderSelect">
+                        <option id="selection-NDO">NDO</option>
+                        <option id="selection-CHSD">CHSD</option>
+                        <option id="selection-Mnemonica">Mnemonica</option>
+                    </select>
+
+                    <button className="shuffleButton" onClick={() => this.shuffle("shuffleTo")}>Riffle to:</button>
+                    <select id="riffleSelect">
+                        <option id="selection-NDO">NDO</option>
+                        <option id="selection-CHSD">CHSD</option>
+                        <option id="selection-Mnemonica">Mnemonica</option>
+                    </select>
+
+                    {/* <Slider></Slider> */}
                 </span>
                 <Xwrapper>
                     <ScrolledDiv className="deck-container">
                         <ol >{shuffles}</ol>
 
                     </ScrolledDiv >
-                    <Lines decks={this.state.decks} selectedCards={this.state.selectedCards}></Lines>
+                    <Lines decks={this.state.decks} selectedCards={this.state.selectedCards} indexToCard={this.indexToCard}></Lines>
                 </Xwrapper>
                 
-                {/* <div className="deck-container" id="deck-container">
-                    <ol >{shuffles}</ol>
-                </div> */}
 
-                <div className="deck-view"><Deck cards={viewDeck} deckNumber={view} view={true}/></div>
+                <div className="deck-view"><Deck cards={viewDeck} deckNumber={view} view={true} indexToCard={this.indexToCard} handleCardClick={this.handleCardClick}/></div>
                 
 
 
@@ -260,20 +297,10 @@ class App extends React.Component {
   
 
 
-function indexToCard(index) {
-    const SUITS = ["C", "H", "S", "D"];
-    const VALS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const suit_index = Math.floor(index / 13);
-    const val_index = index % 13;
-    return VALS[val_index] + SUITS[suit_index];
-}
-
-function indexToImage(index) {
-    const SUITS = ["clubs", "hearts", "spades", "diamonds"];
-    const VALS = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"];
-    const suit_index = Math.floor(index / 13);
-    const val_index = index % 13;
-    return "./card_imgs/" + VALS[val_index] + "_of_" + SUITS[suit_index] + ".png";
+function cardToImage(card) {
+    const suit = card[card.length - 1];
+    const value = card.slice(0, card.length - 1)
+    return "./card_imgs/" + value + suit + ".png";
 }
 
 function cardColor(card) {

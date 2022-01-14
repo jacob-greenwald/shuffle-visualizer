@@ -2,6 +2,9 @@ body {
     font: 14px "Century Gothic", Futura, sans-serif;
     margin: 20px;
     background-color: white;
+
+    white-space: nowrap;
+    overflow-x: scroll;
   }
 
   div {
@@ -66,8 +69,10 @@ body {
     margin-top: 10px;
     margin-bottom: -250px;
     width: 100%;
-    overflow: scroll;
-    white-space: nowrap;
+
+
+    /* overflow: scroll; */
+    /* white-space: nowrap; */
   }
 
   .controls {
@@ -91,6 +96,9 @@ body {
   .game {
     display: grid;
     flex-direction: row;
+
+    /* white-space: nowrap;
+    overflow-x: scroll; */
   }
   
   .game-info {
@@ -133,6 +141,9 @@ body {
 
   .lines {
     position: absolute;
+    /* white-space: nowrap;
+    overflow-x: visible; */
+
   }
 
   /* .card:hover {

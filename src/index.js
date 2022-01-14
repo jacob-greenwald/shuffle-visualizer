@@ -252,6 +252,10 @@ class App extends React.Component {
 
         return (
             <div className="game">
+                <div className="instructions">
+                    <h3>Shuffle Visualizer</h3>
+                    <p>Instructions: Below is a deck of cards and several shuffle buttons. Click on a card to select it, allowing you to track its path through the shuffles.</p>
+                </div>
                 <span className="controls">
                     <button className="shuffleButton" onClick={() => this.shuffle("riffle")}>Riffle</button>
                     <button className="shuffleButton" onClick={() => this.shuffle("fisherYates")}>Fisher-Yates</button>

@@ -17,16 +17,22 @@ const ScrolledDiv = ({ children}) => {
   };
 
 function Card(props) {
-    const card_val = props.indexToCard(props.value);
+    const cardIndex = props.value
+    const card_val = props.indexToCard(cardIndex);
     const img_path = cardToImage(card_val);
     const card_id = props.deckNumber + "-" + card_val;
 
     const className = props.view ? "card-view" : "card";
+    const cardWidth = props.cardWidth;
 
     return (
         <div className="inner">
-            <button className={className} id={card_id} onClick={() => props.handleCardClick({card_val})}>
-                {/* {card_val} */}
+            <button 
+                className={className} 
+                id={card_id} 
+                onClick={() => props.handleCardClick({cardIndex})} 
+                style={{width: cardWidth + "rem"}}
+            >
                 <img src={require(`${img_path}`)} alt={card_val}/>
             </button>
         </div>
@@ -51,6 +57,7 @@ class Deck extends React.Component {
                 view={this.props.view}
                 indexToCard={this.props.indexToCard}
                 handleCardClick={handleCardClick}
+                cardWidth={this.props.cardWidth}
             />
         );
     }
@@ -67,24 +74,19 @@ class Deck extends React.Component {
         );
     }
 }
-  
-class Slider extends React.Component {
-    handleChange(event) {
-        const val = event.target.value;
-
-        const cards = document.getElementsByClassName("card-view");
-
-        for (let i = 0; i < cards.length; i++) {
-            let card = cards[i];
-            card.style.width = val + "vw";
-        }
-        window.scrollTo(0,document.body.scrollHeight - 700);
-    }
-    
-    render() {
-        return <input id="typeinp" type="range" min="3" max="10" defaultValue="4.5" step=".1" onChange={this.handleChange}/>
-    }
-
+ 
+function Slider(props) {
+    return (
+        <input 
+            id="typeinp" 
+            type="range" 
+            min="0.8" 
+            max="5" 
+            defaultValue="1.5" 
+            step=".05" 
+            onChange={props.handleChange}
+        />
+    )
 }
 
 
@@ -143,6 +145,7 @@ class App extends React.Component {
         this.indexToCard = this.indexToCard.bind(this);
         this.handleDeckSelection = this.handleDeckSelection.bind(this);
         this.handleClearSelections = this.handleClearSelections.bind(this);
+        this.handleSlide = this.handleSlide.bind(this);
 
         this.state = {
             decks: [{
@@ -152,6 +155,8 @@ class App extends React.Component {
             view: 0,
             selectedCards: new Set(),
             mapping: Decks[0],
+            cardWidth: 1.5,
+            reversePos: null,
         };
     }
 
@@ -209,12 +214,56 @@ class App extends React.Component {
     }
 
     handleCardClick(card) {
-        const selectedCards = this.state.selectedCards;
-        const card_val = card.card_val;
-        selectedCards.has(card_val) ? selectedCards.delete(card_val) : selectedCards.add(card_val);
-        this.setState({
-            selectedCards: selectedCards,
-        });
+        const cardIndex = card.cardIndex;
+        const cardVal = this.indexToCard(cardIndex);
+
+        if (document.getElementById("selectAction").checked) {
+            const selectedCards = this.state.selectedCards;
+            selectedCards.has(cardVal) ? selectedCards.delete(cardVal) : selectedCards.add(cardVal);
+            this.setState({
+                selectedCards: selectedCards,
+                reversePos: null,
+            });
+        } else if (document.getElementById("cutAction").checked) {
+            const decks = this.state.decks;
+            const deck = decks[decks.length - 1].cards;
+            const pos = deck.indexOf(cardIndex);
+            const cutDeck = cutAt(deck, pos);
+
+            this.setState({
+                decks: decks.concat([{
+                    cards: cutDeck,
+                }]),
+                deckNumber: this.state.deckNumber + 1,
+                view: this.state.deckNumber + 1,
+                reversePos: null,
+            });
+        } else if (document.getElementById("reverseAction").checked) {
+            const decks = this.state.decks;
+            const deck = decks[decks.length - 1].cards;
+
+            if (this.state.reversePos !== null) {
+                const pos1 = this.state.reversePos;
+                const pos2 = deck.indexOf(cardIndex);
+
+                const reversedDeck = reverseBetween(deck, pos1, pos2);
+
+                this.setState({
+                    decks: decks.concat([{
+                        cards: reversedDeck,
+                    }]),
+                    deckNumber: this.state.deckNumber + 1,
+                    view: this.state.deckNumber + 1,
+                    reversePos: null,
+                });
+            } else {
+                const reversePos = deck.indexOf(cardIndex);
+                this.setState({
+                    reversePos: reversePos,
+                });
+            }
+        }
+
     }
 
     handleDeckSelection() {
@@ -236,6 +285,14 @@ class App extends React.Component {
             selectedCards: new Set(),
         })
     }
+
+    handleSlide(event) {
+        const val = event.target.value;
+
+        this.setState({
+            cardWidth: val,
+        })
+    }
     
     render() {
         const decks = this.state.decks;
@@ -245,7 +302,13 @@ class App extends React.Component {
         const shuffles = decks.map((deck, deckNumber) => {
             return (
                 <li key={deckNumber} className="deck" onClick={() => this.handleDeckClick(`${deckNumber}`)}>
-                    <Deck cards={deck.cards} deckNumber={deckNumber} indexToCard={this.indexToCard} handleCardClick={this.handleCardClick}/>
+                    <Deck 
+                        cards={deck.cards} 
+                        deckNumber={deckNumber} 
+                        indexToCard={this.indexToCard} 
+                        handleCardClick={this.handleCardClick}
+                        cardWidth={this.state.cardWidth}
+                    />
                 </li>
               );
         })
@@ -256,30 +319,44 @@ class App extends React.Component {
                     <h3>Shuffle Visualizer</h3>
                     <p>Instructions: Below is a deck of cards and several shuffle buttons. Click on a card to select it, allowing you to track its path through the shuffles.</p>
                 </div>
-                <span className="controls">
-                    <button className="shuffleButton" onClick={() => this.shuffle("riffle")}>Riffle</button>
-                    <button className="shuffleButton" onClick={() => this.shuffle("fisherYates")}>Fisher-Yates</button>
-                    <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
-                    <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
-                    <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
+                <div className="controls">
+                    <div>
+                        <label>Starting order: </label>
+                        <select id="orderSelect" onChange={() => this.handleDeckSelection("orderSelect")}>
+                            <option id="selection-NDO">NDO</option>
+                            <option id="selection-CHSD">CHSD</option>
+                            <option id="selection-Mnemonica">Mnemonica</option>
+                        </select>
+                    </div>
+                    
+                    <span className="shuffleButtons">
+                        
 
-                    <button className="shuffleButton" onClick={() => this.handleDeckSelection("orderSelect")}>Change order to:</button>
-                    <select id="orderSelect">
-                        <option id="selection-NDO">NDO</option>
-                        <option id="selection-CHSD">CHSD</option>
-                        <option id="selection-Mnemonica">Mnemonica</option>
-                    </select>
+                        <button className="shuffleButton" onClick={() => this.shuffle("riffle")}>Riffle</button>
+                        <button className="shuffleButton" onClick={() => this.shuffle("outFaro")}>Out Faro</button>
+                        <button className="shuffleButton" onClick={() => this.shuffle("inFaro")}>In Faro</button>
+                        <button className="shuffleButton" onClick={() => this.shuffle("antiFaro")}>Anti-Faro</button>
+                        <button className="shuffleButton" onClick={() => this.shuffle("fisherYates")}>Fisher-Yates</button>
 
-                    <button className="shuffleButton" onClick={() => this.shuffle("shuffleTo")}>Riffle to:</button>
-                    <select id="riffleSelect">
-                        <option id="selection-NDO">NDO</option>
-                        <option id="selection-CHSD">CHSD</option>
-                        <option id="selection-Mnemonica">Mnemonica</option>
-                    </select>
-                    <button className="shuffleButton" onClick={this.handleClearSelections}>Clear Selections</button>
+                        <button className="shuffleButton" onClick={() => this.shuffle("shuffleTo")}>Riffle to:</button>
+                        <select id="riffleSelect">
+                            <option id="selection-NDO">NDO</option>
+                            <option id="selection-CHSD">CHSD</option>
+                            <option id="selection-Mnemonica">Mnemonica</option>
+                        </select>
+                        <button className="shuffleButton" onClick={this.handleClearSelections}>Clear Selections</button>
 
-                    {/* <Slider></Slider> */}
-                </span>
+                        <input type="radio" name="clickAction" id="selectAction" value="selectAction" defaultChecked/>
+                        <label htmlFor="selectAction">Select</label>
+                        <input type="radio" name="clickAction" id="cutAction" value="cutAction"/>
+                        <label htmlFor="cutAction">Cut</label>
+                        <input type="radio" name="clickAction" id="reverseAction" value="reverseAction"/>
+                        <label htmlFor="reverseAction">Reverse</label>
+
+                        <Slider handleChange={this.handleSlide}></Slider>
+                    </span>
+                </div>
+                
                 <Xwrapper>
                     <ScrolledDiv className="deck-container">
                         <ol >{shuffles}</ol>
@@ -289,7 +366,15 @@ class App extends React.Component {
                 </Xwrapper>
                 
 
-                <div className="deck-view"><Deck cards={viewDeck} deckNumber={view} view={true} indexToCard={this.indexToCard} handleCardClick={this.handleCardClick}/></div>
+                {/* <div className="deck-view">
+                    <Deck 
+                        cards={viewDeck} 
+                        deckNumber={view} view={true} 
+                        indexToCard={this.indexToCard} 
+                        handleCardClick={this.handleCardClick} 
+                        cardWidth={this.state.cardWidth}
+                    />
+                </div> */}
                 
 
 
@@ -360,6 +445,23 @@ function riffle(deck) {
         }
     }
     return shuffled;
+}
+
+// start and end must be in deck
+function reverseBetween(deck, start, end) {
+    // Make sure start <= end
+    [start, end] = start <= end ? [start, end] : [end, start];
+
+    const first = deck.slice(0, start);
+    const reversed = deck.slice(start, end + 1).reverse();
+    const last = deck.slice(end + 1);
+    return first.concat(reversed.concat(last));
+}
+
+function cutAt(deck, pos) {
+    const firstHalf = deck.slice(0, pos);
+    const secondHalf = deck.slice(pos, deck.length);
+    return secondHalf.concat(firstHalf);
 }
 
 function risingSequences(mapping, cards) {

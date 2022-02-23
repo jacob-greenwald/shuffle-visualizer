@@ -31,7 +31,6 @@ body {
     height: auto;
     display: inline-block;
     background-color: inherit;
-    overflow: scroll;
   }
 
   .card {
@@ -50,12 +49,8 @@ body {
 
   }
   
-  .card:focus {
-    outline: none;
-  }
-  
   .deck {
-    margin-bottom: 300px;
+    margin-bottom: 25rem;
     margin-left: 0px;
 
     width: 100%;
@@ -67,26 +62,26 @@ body {
     position: center;
     margin: auto;
     margin-top: 10px;
-    margin-bottom: -250px;
+    /* margin-bottom: -250px; */
     width: 100%;
-
-
-    /* overflow: scroll; */
-    /* white-space: nowrap; */
   }
 
   .controls {
+    background-color: white;
+    margin-top: 0;
     position: sticky;
-    top: 5px;
+    top: 0px;
+
     width: 100%;
-    margin: auto;
-    padding: 0%;
+
+    padding: 10px;
     z-index: 1;
   }
 
   .shuffleButton {
     position: sticky;
-    margin:auto;
+    margin-right: 10px;
+    padding: auto;
   }
 
   .kbd-navigation .square:focus {
@@ -96,9 +91,6 @@ body {
   .game {
     display: grid;
     flex-direction: row;
-
-    /* white-space: nowrap;
-    overflow-x: scroll; */
   }
   
   .game-info {
@@ -136,16 +128,17 @@ body {
 
   .inner {
     display: inline-block;
-    overflow-x: scroll;
+    /* overflow-x: scroll; */
   }
 
   .lines {
     position: absolute;
-    /* white-space: nowrap;
-    overflow-x: visible; */
-
   }
 
   /* .card:hover {
-    width: 3.7vw;
+    background-color: green;
+  }
+
+  .card:focus {
+    background-color: red;
   } */

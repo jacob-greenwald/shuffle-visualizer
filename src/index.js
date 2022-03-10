@@ -296,8 +296,6 @@ class App extends React.Component {
     
     render() {
         const decks = this.state.decks;
-        const view = this.state.view;
-        const viewDeck = decks[view].cards;
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (

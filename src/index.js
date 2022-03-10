@@ -89,6 +89,43 @@ function Slider(props) {
     )
 }
 
+function SimpleLines(props) {
+    const decks = props.decks;
+    const selectedCards = props.selectedCards;
+    const emptySelectedCards = selectedCards.size;
+
+
+    let lines;
+
+    if (decks.length > 1) {
+        lines = decks[0].cards.map((card) => {
+            const card_val = props.indexToCard(card);
+                const card1Id = String(0) + '-' + card_val;
+                const card2Id = String(decks.length - 1) + '-' + card_val;
+                const arrowKey = "arrow" + card1Id;
+                let arrowColor;
+                if (emptySelectedCards) {
+                    arrowColor = selectedCards.has(card_val) ? cardColor(card_val) : "silver";
+                } else {
+                    arrowColor = cardColor(card_val);
+                }
+
+                return (<Xarrow 
+                            key={arrowKey} 
+                            start={card1Id} 
+                            end={card2Id} 
+                            startAnchor='bottom' 
+                            endAnchor='top' 
+                            curveness={0.15} 
+                            path='smooth' 
+                            color={arrowColor}
+                            showHead={false}
+                            strokeWidth={1.5}
+                        />)
+        })
+    }
+    return <div className="lines">{lines}</div>
+}
 
 function Lines(props) {
     const decks = props.decks;
@@ -109,7 +146,6 @@ function Lines(props) {
                 const card1Id = String(deckNumber) + '-' + card_val;
                 const card2Id = String(deckNumber + 1) + '-' + card_val;
                 const arrowKey = "arrow" + card1Id;
-                // const arrowColor = cardColor(card_val);
                 let arrowColor;
                 if (emptySelectedCards) {
                     arrowColor = selectedCards.has(card_val) ? cardColor(card_val) : "silver";
@@ -126,7 +162,6 @@ function Lines(props) {
                             curveness={0.15} 
                             path='smooth' 
                             color={arrowColor}
-
                             showHead={false}
                             strokeWidth={1.5}
                         />)
@@ -152,11 +187,11 @@ class App extends React.Component {
                 cards: [...Array(52).keys()],
             }],
             deckNumber: 0,
-            view: 0,
             selectedCards: new Set(),
             mapping: Decks[0],
             cardWidth: 1.5,
             reversePos: null,
+            compressedView: true,
         };
     }
 
@@ -296,6 +331,7 @@ class App extends React.Component {
     
     render() {
         const decks = this.state.decks;
+        const first_last_decks = [decks[0], decks[decks.length - 1]];
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (
@@ -310,6 +346,18 @@ class App extends React.Component {
                 </div>
               );
         })
+        const first_last_shuffles = [shuffles[0], shuffles[shuffles.length - 1]]
+
+        let shuffleDiv;
+        let lineDiv;
+
+        if (this.state.compressedView) {
+            shuffleDiv = first_last_shuffles;
+            lineDiv = <SimpleLines decks={this.state.decks} selectedCards={this.state.selectedCards} indexToCard={this.indexToCard}></SimpleLines>
+        } else {
+            shuffleDiv = shuffles;
+            lineDiv = <Lines decks={this.state.decks} selectedCards={this.state.selectedCards} indexToCard={this.indexToCard}></Lines>
+        }
 
         return (
             <div className="game">
@@ -352,28 +400,21 @@ class App extends React.Component {
                         <label htmlFor="reverseAction">Reverse</label>
 
                         <Slider handleChange={this.handleSlide}></Slider>
+
+                        <input type="radio" name="viewMode" id="compressedView" value="compressedView" onClick={() => this.setState({compressedView: true})} defaultChecked/>
+                        <label htmlFor="compressedView">Compressed</label>
+                        <input type="radio" name="viewMode" id="expandedView" value="expandedView" onClick={() => this.setState({compressedView: false})}/>
+                        <label htmlFor="expandedView">Expanded</label>
                     </span>
                 </div>
                 
                 <Xwrapper>
                     <ScrolledDiv className="deck-container">
-                        <ol >{shuffles}</ol>
-
+                        {shuffleDiv}
+                        
                     </ScrolledDiv >
-                    <Lines decks={this.state.decks} selectedCards={this.state.selectedCards} indexToCard={this.indexToCard}></Lines>
+                    {lineDiv}
                 </Xwrapper>
-                
-
-                {/* <div className="deck-view">
-                    <Deck 
-                        cards={viewDeck} 
-                        deckNumber={view} view={true} 
-                        indexToCard={this.indexToCard} 
-                        handleCardClick={this.handleCardClick} 
-                        cardWidth={this.state.cardWidth}
-                    />
-                </div> */}
-                
 
 
             </div>

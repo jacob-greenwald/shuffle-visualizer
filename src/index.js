@@ -301,7 +301,7 @@ class App extends React.Component {
 
         const shuffles = decks.map((deck, deckNumber) => {
             return (
-                <li key={deckNumber} className="deck" onClick={() => this.handleDeckClick(`${deckNumber}`)}>
+                <div className="deck">
                     <Deck 
                         cards={deck.cards} 
                         deckNumber={deckNumber} 
@@ -309,7 +309,7 @@ class App extends React.Component {
                         handleCardClick={this.handleCardClick}
                         cardWidth={this.state.cardWidth}
                     />
-                </li>
+                </div>
               );
         })
 
